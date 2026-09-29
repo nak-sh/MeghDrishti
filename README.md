@@ -1,95 +1,219 @@
-# MonsoonLens
+<div align="center">
+
+# 🌧️ MonsoonLens
+
+**A regime-aware monsoon forecast demonstration console**
+
+Built for **SIH 2026 · PS 26080 · NCMRWF / Ministry of Earth Sciences**
+
+![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-backend-009688?logo=fastapi&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.11-3776AB?logo=python&logoColor=white)
+![Data](https://img.shields.io/badge/data-synthetic-orange)
+![Status](https://img.shields.io/badge/status-prototype-lightgrey)
+
+</div>
+
+---
+
+> [!WARNING]
+> **No rainfall ML model is trained, and all products are synthetic.**
+> Verification scores come from date-seeded synthetic fields, not measured operational results. The named LightGBM / U-Net experiments are perturbation surrogates, not trained-model implementations. CAP messages carry status `Test` and are never disseminated. **Not suitable for public safety decisions.**
+
+## 📑 Contents
+
+- [Overview](#-overview)
+- [Features](#-features)
+- [Tech stack](#-tech-stack)
+- [Quick start](#-quick-start)
+- [Configuration](#-configuration)
+- [API reference](#-api-reference)
+- [How the demo data is built](#-how-the-demo-data-is-built)
+- [Live connection status](#-live-connection-status)
+- [Testing](#-testing)
+- [Data provenance](#-data-provenance)
+- [Limitations](#-limitations)
+- [Project structure](#-project-structure)
+
+## 🔭 Overview
+
+MonsoonLens is a demonstration console showing how a regime-aware post-processing pipeline for monsoon rainfall forecasts could look and behave. It covers regime classification, gridded and district-level forecasts, calibrated exceedance probabilities, verification, a Kerala 2018 case study, and provisional alert mapping with CAP export.
+
+It runs entirely on reproducible, in-memory synthetic data, so it can be demonstrated without a database or external credentials.
+
+## ✨ Features
+
+| Area | What you get |
+| --- | --- |
+| **Ten routes** | `/`, `/regimes`, `/forecast`, `/probabilities`, `/districts`, `/verification`, `/case-study`, `/alerts`, `/architecture`, `/methodology` |
+| **Shared controls** | Date, forecast lead (1–5 days), region and alert mapping shared across pages |
+| **Exports** | CSV, GeoJSON and CAP; print-to-PDF verification report |
+| **UX** | Dark and light themes, five-step demo tour, responsive on desktop and mobile |
+| **Geography** | 594 historical districts, India and world basemaps, all bundled locally |
+| **No database** | Cached in-memory products, browser-session alert settings, local theme preference |
+
+## 🧰 Tech stack
+
+**Frontend:** React 19 · React Router · Tailwind CSS / shadcn/ui · Recharts · Leaflet
+
+**Backend:** FastAPI · NumPy · SciPy · Shapely · scikit-learn (isotonic regression)
+
+## 🚀 Quick start
+
+**Prerequisites:** Python 3.11+, Node.js and Yarn (`npm install -g yarn`).
+
+### 1. Clone
+
+```bash
+git clone https://github.com/nak-sh/MonsoonLens.git
+cd MonsoonLens
+```
+
+### 2. Backend (terminal 1)
+
+```bash
 cd backend
 python -m venv venv
 
-# activate it:
-venv\Scripts\activate          # Windows (cmd/PowerShell)
-source venv/bin/activate       # Mac/Linux
+# activate the virtual environment
+venv\Scripts\activate           # Windows
+source venv/bin/activate        # macOS / Linux
 
-copy .env.example .env         # Windows   (use `cp` on Mac/Linux)
+# create your env file
+copy .env.example .env          # Windows
+cp .env.example .env            # macOS / Linux
 
 pip install fastapi "uvicorn[standard]" python-dotenv numpy scipy shapely scikit-learn pytest requests
 
 uvicorn server:app --host 0.0.0.0 --port 8001
+```
 
-I suggest that short pip install line rather than pip install -r requirements.txt. The requirements file is a full dump of the original environment. It includes packages like emergentintegrations and a litellm wheel from a private URL, which will likely fail on your machine, and the app doesn't import them. The code only uses FastAPI, NumPy, SciPy, Shapely, scikit-learn and python-dotenv.
+Check it works: open <http://localhost:8001/api/metadata>. You should see JSON.
 
-Check that it works by opening http://localhost:8001/api/metadata in your browser. You should see JSON.
+> [!NOTE]
+> `backend/requirements.txt` is a full snapshot of the original development environment and includes optional platform packages, some pulled from private URLs, that may not install elsewhere. The application itself only imports FastAPI, NumPy, SciPy, Shapely, scikit-learn and python-dotenv, so the short `pip install` line above is enough.
 
-3. Frontend (terminal 2)
+### 3. Frontend (terminal 2)
 
-bash
+```bash
 cd frontend
-copy .env.example .env         # Windows   (use `cp` on Mac/Linux)
+copy .env.example .env          # Windows
+cp .env.example .env            # macOS / Linux
+
 yarn install
 yarn start
+```
 
-If you don't have Yarn, run npm install -g yarn first. The app opens at http://localhost:3000.
+The app opens at <http://localhost:3000>. Keep the backend running, because the frontend calls it.
 
-Things to know:
+**Production build:** `yarn build` (from `frontend/`).
 
-Keep the backend running, since the frontend calls it at http://localhost:8001 (set in frontend/.env).
-If the pages load but show no data, the usual causes are the backend not running, or the port or URL in frontend/.env not matching.
-mode=live returns a 503 by design, so use demo mode.
-To run the tests, keep the backend running and use set REACT_APP_BACKEND_URL=http://localhost:8001 on Windows (export ... on Mac/Linux), then pytest tests/test_monsoonlens_api.py -q from backend/.
+## ⚙️ Configuration
 
+| File | Variable | Default | Purpose |
+| --- | --- | --- | --- |
+| `backend/.env` | `CORS_ORIGINS` | `http://localhost:3000` | Origins allowed to call the API |
+| `frontend/.env` | `REACT_APP_BACKEND_URL` | `http://localhost:8001` | Backend base URL |
+| `frontend/.env` | `ENABLE_HEALTH_CHECK` | `false` | Dev-server health-check plugin |
 
+No MongoDB or API credentials are required. If a page loads but shows no data, check that the backend is running and that `REACT_APP_BACKEND_URL` matches its address.
 
+## 📡 API reference
 
+All product endpoints accept:
 
-Regime-aware monsoon forecast demonstration console for **SIH 2026 · PS 26080 · NCMRWF / Ministry of Earth Sciences**.
+| Parameter | Values |
+| --- | --- |
+| `date` | ISO date |
+| `lead` | `1`–`5` |
+| `region` | a supported region preset |
+| `mode` | `demo` (default) or `live` (returns 503, see below) |
 
-## Scientific status
+Rainfall exceedance thresholds are **64.5, 115.6 and 204.5 mm/day**. The parameters `cutoff`, `yellow`, `orange` and `red` control the provisional alert mapping across overview, district and CAP products.
 
-**No rainfall ML model is trained. All products are synthetic.** Verification scores are calculated from date-seeded synthetic fields, not measured operational results. Named LightGBM / U-Net experiments are perturbation surrogates, not trained-model implementations. CAP messages have status `Test` and are never disseminated.
+| Endpoint | Description |
+| --- | --- |
+| `GET /api/metadata` | Application and data metadata |
+| `GET /api/overview` | Command-center summary |
+| `GET /api/forecast/districts` | District forecasts (`format=geojson` includes polygons) |
+| `GET /api/forecast/grid` | 0.25° gridded forecast (nulls outside land/region mask) |
+| `GET /api/forecast/point?lat=..&lon=..` | Point forecast |
+| `GET /api/regime` | Monsoon regime classification |
+| `GET /api/probabilities?threshold=64.5&calibrated=true&cutoff=0.5` | Exceedance probabilities |
+| `GET /api/verification?threshold=64.5&regime=All%20regimes&period=2018` | Verification metrics |
+| `GET /api/case-study` | Kerala 2018 case study |
+| `GET /api/alerts/cap/{district}` | CAP message (status `Test`) |
+| `GET /api/architecture` · `/api/operations` · `/api/methodology` | Documentation products |
 
-## Application
+JSON products include `synthetic: true`, `data_mode: demo` and provenance fields. Unsupported regions, thresholds and invalid lead days are rejected by input validation.
 
-- React 19, React Router, Tailwind/shadcn, Recharts, Leaflet; locally bundled geography.
-- FastAPI, NumPy/SciPy, Shapely, scikit-learn isotonic regression.
-- Ten routes: `/`, `/regimes`, `/forecast`, `/probabilities`, `/districts`, `/verification`, `/case-study`, `/alerts`, `/architecture`, `/methodology`.
-- Shared date, forecast lead, region and alert mapping; dark/light themes; CSV/GeoJSON/CAP exports; print-to-PDF verification; five-step demo tour.
-- No database required: reproducible in-memory cached products, browser-session alert settings, local theme preference.
+## 🧪 How the demo data is built
 
-## Environment
+- **Observed:** smooth, controlled synthetic truth.
+- **Raw:** shifted and damped truth plus drizzle.
+- **Corrected:** partial restoration of truth with residual perturbations.
+- **Calibration:** independent isotonic fit on five synthetic JJAS 2016 dates.
+- **District means:** cosine-latitude weighted grid-center samples, using the nearest land cell for tiny polygons. Max-grid exceedance is *not* a district-wide event probability.
+- **Verification:** eight synthetic dates per selected test year, real contingency metrics and FSS, and 120 day-block bootstrap resamples. Neighbourhoods approximate 25/50/100 km using 1/2/4 grid cells, and the latitude dependence is disclosed.
+- **Regions:** Kerala uses a state-union mask; other presets use geographic windows.
+- **Kerala case study:** a synthetic reconstruction with fixed 10–19 August 2018 event dates and region. The global lead stays active, and this exception to the global date and region is labelled in the UI.
 
-Use the existing frontend `REACT_APP_BACKEND_URL` and backend `CORS_ORIGINS`. `MONGO_URL` and `DB_NAME` are preserved but unused. Existing supervisor services manage backend port 8001 and frontend port 3000. Do not change the configured public API URL.
+## 🔌 Live connection status
 
-Dependencies: `pip install -r backend/requirements.txt`; `yarn` in `frontend`. Frontend production build: `yarn build`.
+`mode=live` is **not connected**. The live service URL, authentication requirements and response schema have not been supplied, so requests explicitly return **HTTP 503** rather than silently falling back to synthetic data.
 
-## API
+To enable it, add a server-side adapter behind the existing endpoints and preserve the frontend product contract.
 
-Product endpoints accept `date` (ISO date), `lead` (1–5), `region` and `mode` (`demo` / `live`). Rainfall exceedance levels: 64.5, 115.6, 204.5 mm/day. Parameters `cutoff`, `yellow`, `orange`, `red` control provisional alert mapping across overview, district and CAP products.
+## ✅ Testing
 
-- `GET /api/metadata`, `/api/overview`
-- `GET /api/forecast/districts` (`format=geojson` includes polygons)
-- `GET /api/forecast/grid`
-- `GET /api/forecast/point?lat=...&lon=...`
-- `GET /api/regime`
-- `GET /api/probabilities?threshold=64.5&calibrated=true&cutoff=0.5`
-- `GET /api/verification?threshold=64.5&regime=All%20regimes&period=2018`
-- `GET /api/case-study`
-- `GET /api/alerts/cap/{district}`
-- `GET /api/architecture`, `/api/operations`, `/api/methodology`
+With the backend running:
 
-JSON products include `synthetic: true`, `data_mode: demo` and provenance. The 0.25° grid uses nulls outside land/region masks. API input validation rejects unsupported regions, thresholds and invalid lead days.
+```bash
+cd backend
 
-## Live connection pending
+# Windows
+set REACT_APP_BACKEND_URL=http://localhost:8001
+# macOS / Linux
+export REACT_APP_BACKEND_URL=http://localhost:8001
 
-The user selected an existing live service but has not supplied its URL, authentication requirements or response examples. `mode=live` therefore explicitly returns **HTTP 503**, never silent synthetic fallback. Add a server-side adapter at the existing endpoints after receiving those details; preserve the frontend product contract. Do not invent a live connection.
+pytest tests/test_monsoonlens_api.py -q
+```
 
-## Scientific calculations and caveats
+The suite contains 16 backend API tests. All ten routes and the major interactions were checked on desktop and mobile, and the production build compiled without warnings.
 
-- Observed = smooth controlled synthetic truth; Raw = shifted/damped truth plus drizzle; Corrected = partial restoration with residual perturbations.
-- Independent isotonic fit on five synthetic JJAS 2016 dates.
-- District means: cosine-latitude weighted grid-center samples; nearest land cell for tiny polygons. Max-grid exceedance is not district-wide event probability.
-- Verification: eight synthetic dates per selected test year, actual contingency metrics and FSS, 120 day-block bootstrap resamples. Neighbourhoods approximate 25/50/100 km using 1/2/4 grid cells; latitude dependence is disclosed.
-- Geography: 594 historical non-authoritative districts. See `backend/data/README.md` for provenance and terms. Kerala uses a state-union mask; other region presets use geographic windows.
-- Kerala case study: synthetic reconstruction, fixed 10–19 August 2018 event dates/region; global lead remains active. This exception to global date/region is explicitly labelled.
-- Alert thresholds/actions require NCMRWF/IMD approval. Not suitable for public safety decisions.
+## 🗺️ Data provenance
 
-## Validation
+| File | Source | Notes |
+| --- | --- | --- |
+| `districts.geojson` | [geohacker/india](https://github.com/geohacker/india) (GADM-derived) | 594 **historical**, non-authoritative districts, simplified at 0.025° tolerance |
+| `world.geojson` | [Natural Earth](https://github.com/nvkelso/natural-earth-vector) 1:110m admin-0 | Public-domain context basemap |
 
-`REACT_APP_BACKEND_URL=<configured URL> pytest backend/tests/test_monsoonlens_api.py -q`
+Review the upstream terms, including GADM's use and redistribution terms, before any non-prototype use. No boundary expresses an official government position, and the cartography is solely demonstrative. Full details are in [`backend/data/README.md`](backend/data/README.md).
 
-16 backend tests passed. All ten routes and major interactions tested on desktop/mobile. Initial report: `test_reports/iteration_1.json`; the reported option-nesting warning was fixed and reverified with zero application browser errors/warnings. Final details: `test_reports/final_validation.md`. Production build compiled successfully without warnings.
+## ⚠️ Limitations
+
+- All forecasts, scores and alerts are synthetic and illustrative.
+- Alert thresholds and actions would require NCMRWF/IMD approval.
+- District boundaries are historical and not authoritative.
+- Live mode is unavailable until an external service is specified.
+
+## 📁 Project structure
+
+```text
+MonsoonLens/
+├── backend/
+│   ├── server.py          # FastAPI app and routes
+│   ├── engine.py          # Synthetic field generation, masks, districts
+│   ├── metrics.py         # Verification, FSS, probability reports
+│   ├── content.py         # Metadata, methodology, pipeline text
+│   ├── data/              # Bundled district GeoJSON + provenance
+│   └── tests/             # API tests
+├── frontend/
+│   ├── public/data/       # Bundled GeoJSON (districts, India, world)
+│   └── src/
+│       ├── pages/         # The ten route pages
+│       ├── components/    # Charts, map, layout, UI primitives
+│       └── lib/           # API client, settings
+├── EXPORT_GUIDE.md
+└── README.md
+```
