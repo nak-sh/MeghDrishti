@@ -1,0 +1,44 @@
+from engine import REGIMES, REGIONS, COLORS, GEO
+RULES = [
+    {'regime':'Active','rule':'Core-zone rainfall anomaly above +1 SD for 3+ days','predictors':'Core-zone precipitation anomaly, 850 hPa zonal wind, humidity'},
+    {'regime':'Break','rule':'Core-zone rainfall anomaly below −1 SD for 3+ days','predictors':'Core-zone precipitation anomaly, monsoon-trough latitude'},
+    {'regime':'Depression','rule':'850 hPa vorticity maximum co-located with MSLP minimum','predictors':'850 hPa relative vorticity, MSLP, moisture convergence'},
+    {'regime':'Orographic','rule':'Upslope moisture flux above the 85th percentile','predictors':'Terrain gradient, low-level specific humidity, cross-barrier wind'},
+    {'regime':'Western Disturbance','rule':'500–200 hPa trough over northwest India','predictors':'Mid/upper-level geopotential height, potential vorticity, jet position'},
+    {'regime':'Coastal','rule':'Within approximately 50 km of coast with low-level convergence','predictors':'Distance to coast, 925 hPa convergence, onshore moisture flux'},
+    {'regime':'Mixed','rule':'Two or more normalized regime probabilities exceed 0.30','predictors':'Soft router probabilities; Mixed is a flag, not an extra probability'},
+]
+PIPELINE = [
+    {'id':'sources','title':'Data sources','subtitle':'Atmosphere · observations · terrain','technologies':['NCMRWF NWP','IMD rainfall','ERA5','SRTM'],'details':'Proposed inputs: NCMRWF numerical forecasts, IMD gridded rainfall, atmospheric reanalysis and static topography. No operational feeds are connected in this prototype.','training':'Historical 2000–2019 inputs, subject to source access and licensing.','live':'Daily NWP cycle and lagged observations, subject to delivery availability.','nodes':['NWP fields','IMD observations','Topography & masks']},
+    {'id':'ingestion','title':'Ingestion & alignment','subtitle':'One grid. One rainfall day.','technologies':['xarray','Dask','Zarr','Conservative regridding'],'details':'Proposed: regrid to 0.25°, align accumulations to 03:00–03:00 UTC, detect missing fields, and prevent temporal leakage. Current implementation uses NumPy and SciPy synthetic fields.','training':'Fit transforms on 2000–2014 training data only.','live':'Validate forecast cycle, accumulation window, units and coverage.','nodes':['Quality checks','0.25° alignment','03:00 UTC accumulation']},
+    {'id':'core','title':'MonsoonLens-Net & ensemble','subtitle':'Physics-informed · regime-aware','technologies':['PyTorch','LightGBM','MLflow','scikit-learn'],'details':'Proposed model architecture, not trained or implemented: U-Net encoder, physics-supervised soft router, specialist experts and rainfall/probability heads. The prototype uses controlled perturbations and an actual isotonic calibrator on synthetic data.','training':'Offline supervision, soft gating, blocked validation and independent calibration.','live':'Frozen-model inference, expert blending, ensemble and probability calibration.','nodes':['Encoder (U-Net)','Physics-supervised router','Regime experts','Output heads','Ensemble & calibration']},
+    {'id':'aggregation','title':'District aggregation','subtitle':'Grid cells → actionable geography','technologies':['Shapely','NumPy','PostGIS (proposed)'],'details':'Implemented: polygon grid-center sampling and cosine-latitude weighted areal means. Districts without a 0.25° grid center use the nearest land cell. Max exceedance is not a probability of district-wide rainfall. Historical boundaries are illustrative.','training':'District-level diagnostics with spatially blocked checks.','live':'Areal mean, peak, maximum exceedance and configurable alert mapping.','nodes':['Areal mean','Peak exceedance','Alert mapping']},
+    {'id':'outputs','title':'Products & delivery','subtitle':'Forecasts that reach decision-makers','technologies':['FastAPI','React','Leaflet','CAP 1.2'],'details':'Implemented: REST products, maps, CSV / GeoJSON exports, test-status CAP XML and printable verification summaries. No public alert dissemination takes place.','training':'Verification reports and auditable experiment comparisons.','live':'District bulletins, map layers and CAP alerts after agency approval.','nodes':['Operations console','District products','CAP & REST API']},
+]
+
+def metadata():
+    return {'regions': [{'name':n,'bounds':[[b[0],b[1]],[b[2],b[3]]]} for n,b in REGIONS.items()], 'regimes':REGIMES, 'regime_colors':COLORS, 'states':sorted(set(f['properties']['state'] for f in GEO['features'])), 'thresholds':[2.5,15.6,64.5,115.6,204.5], 'district_count':len(GEO['features']), 'live_available':False, 'default_date':'2026-08-16'}
+
+def methodology():
+    return {'sources':[
+        {'source':'NCMRWF numerical weather prediction','resolution':'Native model → 0.25°','role':'Forecast predictors','status':'Proposed · not connected'},
+        {'source':'IMD daily gridded rainfall','resolution':'0.25° · 24 h','role':'Training and verification target','status':'Proposed · access required'},
+        {'source':'ERA5 atmospheric reanalysis','resolution':'Pressure-level fields','role':'Objective regime labels','status':'Proposed · not connected'},
+        {'source':'SRTM elevation / coast distance','resolution':'Static → 0.25°','role':'Terrain and coastal predictors','status':'Proposed · not connected'},
+        {'source':'NumPy / SciPy synthetic engine','resolution':'0.25° · date-seeded','role':'All displayed rainfall and products','status':'Active · synthetic'},
+        {'source':'geohacker/india (GADM-derived)','resolution':'594 historical districts','role':'Simplified geographic demonstration','status':'Bundled · non-authoritative'},
+        {'source':'Natural Earth','resolution':'1:110m','role':'Context basemap','status':'Bundled · public domain'}],
+        'splits':[{'name':'Train','years':'2000–2014','purpose':'Proposed model fit; 15 monsoon seasons.'},{'name':'Tune','years':'2015–2016','purpose':'Proposed tuning; implemented isotonic fit uses five synthetic 2016 dates.'},{'name':'Test','years':'2017–2019','purpose':'Selectable synthetic demonstration years; never used to fit the calibrator.'}],
+        'alignment':'IMD daily rainfall accumulates from 08:30 IST to 08:30 IST the next day, equivalent to 03:00 UTC to 03:00 UTC. Day 1 begins on the selected initialization date; subsequent lead days shift the valid window by 24 hours.',
+        'limitations':[
+            'No rainfall ML model has been trained. All rainfall, regime probabilities, operational status and historical case-study fields are synthetic.',
+            'Corrected fields are controlled perturbations of synthetic truth. Apparent improvement is designed for demonstration and is not evidence of forecasting capability.',
+            'M-0 to M-8 are illustrative perturbation surrogates, not trained LightGBM or U-Net models. The bias-removal surrogate uses synthetic evaluation means and is not a leakage-free benchmark.',
+            'Verification uses eight synthetic dates in a selected year. Metrics are mathematically computed; confidence intervals use 120 day-block bootstrap resamples and are not operational uncertainty estimates.',
+            'Regime classifier quality uses separate synthetic label/probability samples. Objective atmospheric label rules are specified, not evaluated against real predictors.',
+            'District boundaries are historical (594 districts), simplified and non-authoritative. They are not current administrative, legal or official boundary representations.',
+            'District means use cosine-latitude weighted grid-center sampling, not exact polygon intersection. Tiny districts fall back to the nearest land-grid cell.',
+            'FSS neighbourhoods use approximately 25 / 50 / 100 km (1 / 2 / 4 grid cells); true physical spacing varies with latitude.',
+            'Alert mappings and suggested actions are provisional, to be confirmed with NCMRWF/IMD. CAP messages have status Test and must not be used for real warnings.',
+            'Live mode requires an external service URL, authentication specification and response examples. No live products are currently available.'
+        ], 'provenance':'Districts: github.com/geohacker/india (historical GADM-derived; review source terms before redistribution). Basemap: Natural Earth, public domain. Geography is for prototype demonstration only.'}

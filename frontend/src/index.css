@@ -1,0 +1,10 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;550;600;650;700;750&family=JetBrains+Mono:wght@400;500;600&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer base {
+ :root {--background:210 25% 97%;--foreground:213 32% 17%;--card:0 0% 100%;--card-foreground:213 32% 17%;--popover:0 0% 100%;--popover-foreground:213 32% 17%;--primary:171 58% 37%;--primary-foreground:0 0% 100%;--secondary:210 20% 94%;--secondary-foreground:213 25% 25%;--muted:210 18% 94%;--muted-foreground:214 12% 43%;--accent:172 25% 94%;--accent-foreground:172 50% 25%;--destructive:0 65% 50%;--destructive-foreground:0 0% 100%;--border:213 17% 87%;--input:213 17% 87%;--ring:171 60% 40%;--radius:.35rem;}
+ .dark {--background:216 35% 8%;--foreground:213 27% 91%;--card:216 31% 11%;--card-foreground:213 27% 91%;--popover:216 29% 13%;--popover-foreground:213 27% 91%;--primary:171 55% 58%;--primary-foreground:215 40% 9%;--secondary:215 24% 15%;--secondary-foreground:213 22% 86%;--muted:215 25% 15%;--muted-foreground:215 16% 62%;--accent:172 27% 17%;--accent-foreground:171 57% 65%;--destructive:0 62% 55%;--destructive-foreground:0 0% 100%;--border:215 22% 20%;--input:215 22% 20%;--ring:171 55% 58%;}
+ * {@apply border-border;}body {@apply bg-background text-foreground;}
+}
+*{box-sizing:border-box;letter-spacing:0}body{margin:0;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}button,input,select,textarea{font:inherit}button,a,input,select{-webkit-tap-highlight-color:transparent}button,a{transition:background-color .2s,color .2s,border-color .2s,opacity .2s}button{cursor:pointer}button:disabled{cursor:not-allowed}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent-teal);outline-offset:3px}::selection{background:#27796e;color:white}code,.mono{font-family:'JetBrains Mono',monospace}svg{flex-shrink:0}::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-thumb{background:#506074;border-radius:4px}::-webkit-scrollbar-track{background:transparent}
