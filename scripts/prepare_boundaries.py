@@ -14,6 +14,5 @@ for feature in source['features']:
 result = {'type': 'FeatureCollection', 'features': features, 'source': 'geohacker/india, historical GADM-derived boundaries. 594 districts; not current or authoritative.'}
 for file in ['/app/backend/data/districts.geojson', '/app/frontend/public/data/districts.geojson']:
     Path(file).write_text(json.dumps(result, separators=(',', ':')))
-country = {'type': 'Feature', 'properties': {'name': 'India'}, 'geometry': mapping(unary_union([shape(f['geometry']) for f in features]).simplify(.035))}
-Path('/app/frontend/public/data/india.geojson').write_text(json.dumps(country, separators=(',', ':')))
 print(f'Bundled {len(features)} historical district boundaries.')
+print('National outline is independent: run prepare_official_india.py after preparing districts.')

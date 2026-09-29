@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSettings } from './settings';
-export const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+export const API = `${process.env.REACT_APP_BACKEND_URL || ''}/api`;
 export const REGIME_COLORS = {'Active':'#5595f5','Break':'#eab350','Depression':'#ad82ec','Orographic':'#45bb88','Coastal':'#35c7d5','Western Disturbance':'#ec829e','Mixed':'#8995a8'};
 export const ALERT_COLORS = {Red:'#f06a76',Orange:'#ef994a',Yellow:'#e9c75c',Green:'#42ab8b'};
 export const RAIN_COLORS = ['#243b58','#3c6fa0','#399cc3','#656ed4','#a661d2','#dc5ea6'];

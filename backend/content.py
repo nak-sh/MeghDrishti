@@ -1,4 +1,4 @@
-from engine import REGIMES, REGIONS, COLORS, GEO
+from engine import REGIMES, REGIONS, COLORS, GEO, BOUNDARY_PROVENANCE
 RULES = [
     {'regime':'Active','rule':'Core-zone rainfall anomaly above +1 SD for 3+ days','predictors':'Core-zone precipitation anomaly, 850 hPa zonal wind, humidity'},
     {'regime':'Break','rule':'Core-zone rainfall anomaly below −1 SD for 3+ days','predictors':'Core-zone precipitation anomaly, monsoon-trough latitude'},
@@ -17,7 +17,7 @@ PIPELINE = [
 ]
 
 def metadata():
-    return {'regions': [{'name':n,'bounds':[[b[0],b[1]],[b[2],b[3]]]} for n,b in REGIONS.items()], 'regimes':REGIMES, 'regime_colors':COLORS, 'states':sorted(set(f['properties']['state'] for f in GEO['features'])), 'thresholds':[2.5,15.6,64.5,115.6,204.5], 'district_count':len(GEO['features']), 'live_available':False, 'default_date':'2026-08-16'}
+    return {'regions': [{'name':n,'bounds':[[b[0],b[1]],[b[2],b[3]]]} for n,b in REGIONS.items()], 'regimes':REGIMES, 'regime_colors':COLORS, 'states':sorted(set(f['properties']['state'] for f in GEO['features'])), 'thresholds':[2.5,15.6,64.5,115.6,204.5], 'district_count':len(GEO['features']), 'live_available':False, 'default_date':'2026-08-16', 'boundary_provenance':BOUNDARY_PROVENANCE}
 
 def methodology():
     return {'sources':[
@@ -26,8 +26,9 @@ def methodology():
         {'source':'ERA5 atmospheric reanalysis','resolution':'Pressure-level fields','role':'Objective regime labels','status':'Proposed · not connected'},
         {'source':'SRTM elevation / coast distance','resolution':'Static → 0.25°','role':'Terrain and coastal predictors','status':'Proposed · not connected'},
         {'source':'NumPy / SciPy synthetic engine','resolution':'0.25° · date-seeded','role':'All displayed rainfall and products','status':'Active · synthetic'},
-        {'source':'geohacker/india (GADM-derived)','resolution':'594 historical districts','role':'Simplified geographic demonstration','status':'Bundled · non-authoritative'},
-        {'source':'Natural Earth','resolution':'1:110m','role':'Context basemap','status':'Bundled · public domain'}],
+        {'source':'Survey of India, Government of India','resolution':'Official outline · source metadata 13 Feb 2026','role':'National boundary and synthetic grid mask','status':'Bundled · Indian official representation'},
+        {'source':'geohacker/india (GADM-derived)','resolution':'594 historical districts','role':'District products only; not national boundary','status':'Bundled · incomplete district coverage'},
+        {'source':'Natural Earth','resolution':'1:110m · country borders dissolved','role':'Surrounding land context only','status':'Bundled · public domain'}],
         'splits':[{'name':'Train','years':'2000–2014','purpose':'Proposed model fit; 15 monsoon seasons.'},{'name':'Tune','years':'2015–2016','purpose':'Proposed tuning; implemented isotonic fit uses five synthetic 2016 dates.'},{'name':'Test','years':'2017–2019','purpose':'Selectable synthetic demonstration years; never used to fit the calibrator.'}],
         'alignment':'IMD daily rainfall accumulates from 08:30 IST to 08:30 IST the next day, equivalent to 03:00 UTC to 03:00 UTC. Day 1 begins on the selected initialization date; subsequent lead days shift the valid window by 24 hours.',
         'limitations':[
@@ -36,9 +37,10 @@ def methodology():
             'M-0 to M-8 are illustrative perturbation surrogates, not trained LightGBM or U-Net models. The bias-removal surrogate uses synthetic evaluation means and is not a leakage-free benchmark.',
             'Verification uses eight synthetic dates in a selected year. Metrics are mathematically computed; confidence intervals use 120 day-block bootstrap resamples and are not operational uncertainty estimates.',
             'Regime classifier quality uses separate synthetic label/probability samples. Objective atmospheric label rules are specified, not evaluated against real predictors.',
-            'District boundaries are historical (594 districts), simplified and non-authoritative. They are not current administrative, legal or official boundary representations.',
+            'The national outline follows the Government of India / Survey of India official boundary representation, including the full northern extent. Its source is the Survey of India downloadable vector dataset, reprojected from its supplied LCC_WGS84 CRS and generalized by 100 metres for web display. This app is not separately certified by Survey of India.',
+            'District boundaries remain historical (594 districts), simplified and non-authoritative. Areas within the national outline without a bundled district record are shown as district data unavailable, not green/no-warning. Synthetic gridded products cover the national outline; district coverage does not define the national boundary.',
             'District means use cosine-latitude weighted grid-center sampling, not exact polygon intersection. Tiny districts fall back to the nearest land-grid cell.',
             'FSS neighbourhoods use approximately 25 / 50 / 100 km (1 / 2 / 4 grid cells); true physical spacing varies with latitude.',
             'Alert mappings and suggested actions are provisional, to be confirmed with NCMRWF/IMD. CAP messages have status Test and must not be used for real warnings.',
             'Live mode requires an external service URL, authentication specification and response examples. No live products are currently available.'
-        ], 'provenance':'Districts: github.com/geohacker/india (historical GADM-derived; review source terms before redistribution). Basemap: Natural Earth, public domain. Geography is for prototype demonstration only.'}
+        ], 'provenance':'Source: Survey of India, Government of India. Official national outline: https://surveyofindia.gov.in/documents/Outline_of_India.zip (linked from its Outline Maps of India page). Digital display basis: Geospatial Guidelines 2021, clause 8(xiii), https://onlinemaps.surveyofindia.gov.in/GeospatialGuidelines.aspx. National outline and grid mask follow India’s official boundary representation. Districts: historical geohacker/india data, separate from the national outline. Surrounding land: Natural Earth, all political boundaries dissolved; never used to determine India’s border.'}

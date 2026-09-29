@@ -97,3 +97,28 @@ Engine requirements: date-seeded spatial correlation, Western Ghats/monsoon trou
 - Do not remove DEMO DATA or caveats to make the prototype seem operational.
 - Do not modify protected URLs/Mongo values. Do not introduce auth, payments, scheduling or LLM integration absent user request.
 - The user's next actionable input is live-service details; all current demo flows work.
+
+## Boundary correction — 2026-09-29
+
+### User request and explicit choice
+- “rectify india's map specially on the northern side include complete part of jammu and kashmir according to india's own map dont refer china or pakistan's data”
+- Source preference: “Use an Indian government source, preferably Survey of India, subject to availability and usage terms.”
+
+### Implemented
+- Obtained the national boundary directly from **Survey of India, Government of India**, not a community substitute or foreign political representation: https://surveyofindia.gov.in/documents/Outline_of_India.zip, linked from https://surveyofindia.gov.in/pages/outline-maps-of-india.
+- Source is a real polygon shapefile in LCC_WGS84. Source XML metadata dates it13February2026. pyshp/pyproj convert it to EPSG:4326 with100m topology-preserving rendering simplification. Provenance includes the original SHA-256 and exact processing/source details.
+- Source use checked: general website copyright policy is restrictive, but the specific digital boundary guidance published on its official portal explicitly permits digital display/printing of SoI boundary data: Geospatial Guidelines2021 clause8(xiii), https://onlinemaps.surveyofindia.gov.in/GeospatialGuidelines.aspx. Full attribution retained; no false certification/endorsement claim.
+- Shared official geometry is bundled in backend/frontend `india.geojson`. The backend land mask now uses it instead of the incomplete historical district union. Northern bounds extend through37.088°N. All-India/Himalaya fit bounds include37.5°N so the crown is not cut off.
+- Converted Natural Earth to a **dissolved land-context-only** layer, removed India from it and discarded all context political boundaries. It never determines India's external boundary. Pakistan/China labels removed; no Pakistani/Chinese boundary source used.
+- All map views (command, rainfall swipe, regimes, probabilities, district mini-map, case study) share the same component/source and display “Source: Survey of India, Government of India.” and “India’s official boundary representation.” Outline is rendered above rasters in its own pane.
+- Historical district coverage remains594 districts. Missing northern district records are grey “District data unavailable”, not fabricated districts or green alerts. Synthetic gridded fields cover the complete official outline.
+- Maps, aggregation and district GeoJSON exports use identical pre-clipped district geometry from `districts-display.geojson`; original historical geometry is retained only for reproducible preparation. API metadata exposes boundary provenance; methodology, README and data-source documentation updated.
+- `scripts/prepare_official_india.py` is the reproducible preparation script; old district preparation no longer overwrites the national outline.
+
+### Boundary validation completed
+- Official geometry directly checked to cover Gilgit, Skardu, Muzaffarabad, Aksai Chin interior, Srinagar and a36.9°N northern point. These checks validate the user-selected Indian official representation, not a claim about de-facto administration.
+- API point36°N,74.25°E now returns synthetic rainfall rather than a missing-land404.
+- Desktop1920×800 and mobile390×844 screenshots show the full crown, source attribution and no horizontal overflow. Forecast comparison also retains the full extent.
+- Targeted test report `/app/test_reports/iteration_2.json`:24/24 backend tests passed (16 original +8 new). Verified official bounds, northern coverage, frontend/backend identity,594 retained IDs, clipped exports, dissolved context and source attribution. Desktop/mobile map views, light/dark, swipe/zoom and valid northern point popups passed.
+- Increased main map attribution to10px with9px secondary text (mini maps9px/8px) after readability feedback. Outside-mask clicks intentionally show no-data; no fabricated edge values or silent snapping are introduced.
+- `scripts/export_source.py` refreshes the existing downloadable archive with corrected boundary assets, source provenance, updated code and configuration examples, excluding real environment files and original downloadable ZIP inputs.

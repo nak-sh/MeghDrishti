@@ -10,7 +10,7 @@ from fastapi.responses import Response
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 load_dotenv(Path(__file__).parent / '.env')
-from engine import fields, districts, clean_grid, mixture, region_mask, REGIONS, REGIMES, COLORS, GEO, seed
+from engine import fields, districts, clean_grid, mixture, region_mask, REGIONS, REGIMES, COLORS, GEO, seed, BOUNDARY_PROVENANCE
 from metrics import metrics, probability_report, verification, classifier_quality
 from content import metadata, methodology, RULES, PIPELINE
 
@@ -24,7 +24,7 @@ def context(date:Date=Query(Date(2026,8,16)),lead:int=Query(1,ge=1,le=5),region:
     return {'day':date.isoformat(),'lead':lead,'region':region}
 
 def meta(c):
-    return {'data_mode':'demo','synthetic':True,'initialization_date':c['day'],'lead':c['lead'],'region':c['region'],'disclaimer':'Synthetic data for prototype demonstration. Metrics are illustrative, not measured results.'}
+    return {'data_mode':'demo','synthetic':True,'initialization_date':c['day'],'lead':c['lead'],'region':c['region'],'disclaimer':'Synthetic data for prototype demonstration. Metrics are illustrative, not measured results.','boundary_source':BOUNDARY_PROVENANCE['source'],'boundary_representation':BOUNDARY_PROVENANCE['boundary_representation']}
 
 @api.get('/')
 def root():return {'service':'MonsoonLens','status':'ok','synthetic':True}

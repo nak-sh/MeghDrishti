@@ -14,13 +14,17 @@ from sklearn.isotonic import IsotonicRegression
 
 REGIMES = ['Active', 'Break', 'Depression', 'Orographic', 'Coastal', 'Western Disturbance']
 COLORS = {'Active': '#5595f5', 'Break': '#eab350', 'Depression': '#ad82ec', 'Orographic': '#45bb88', 'Coastal': '#35c7d5', 'Western Disturbance': '#ec829e', 'Mixed': '#8995a8'}
-REGIONS = {'All India': [6.5, 68, 37.5, 98], 'Western Ghats': [8, 72, 21, 78], 'Himalaya': [27, 73, 36, 89], 'Indo-Gangetic Plains': [24, 74, 30, 89], 'Northeast': [22, 88, 30, 98], 'Central India': [17, 73, 25, 87], 'Kerala': [8, 74.5, 13, 77.5]}
+REGIONS = {'All India': [6.5, 68, 37.5, 98], 'Western Ghats': [8, 72, 21, 78], 'Himalaya': [27, 73, 37.5, 89], 'Indo-Gangetic Plains': [24, 74, 30, 89], 'Northeast': [22, 88, 30, 98], 'Central India': [17, 73, 25, 87], 'Kerala': [8, 74.5, 13, 77.5]}
 THRESHOLDS = [64.5, 115.6, 204.5]
-GEO = json.loads((Path(__file__).parent / 'data/districts.geojson').read_text())
+GEO = json.loads((Path(__file__).parent / 'data/districts-display.geojson').read_text())
+NATIONAL_OUTLINE = json.loads((Path(__file__).parent / 'data/india.geojson').read_text())
+BOUNDARY_PROVENANCE = NATIONAL_OUTLINE['properties']
 LATS = np.arange(6.5, 37.501, .25)
 LONS = np.arange(68, 98.001, .25)
 X, Y = np.meshgrid(LONS, LATS)
-INDIA = unary_union([shape(f['geometry']) for f in GEO['features']])
+# National coverage follows the official Survey of India outline, NOT the
+# incomplete union of historical district polygons. Never infer borders from data gaps.
+INDIA = shape(NATIONAL_OUTLINE['geometry'])
 MASK = contains_xy(INDIA, X, Y)
 KERALA_MASK = contains_xy(unary_union([shape(f['geometry']) for f in GEO['features'] if f['properties']['state']=='Kerala']), X, Y) & MASK
 DISTRICT_CELLS = {}
