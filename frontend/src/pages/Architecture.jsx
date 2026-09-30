@@ -1,9 +1,16 @@
-import {useState} from 'react';
-import {Database,ArrowDown,Layers3,BrainCircuit,Map,Radio,Activity,CheckCircle2,AlertTriangle,ArrowUpRight} from 'lucide-react';
-import {useApi} from '../lib/api';
-import {Async,PageTitle,SectionHead,Drawer,Notice,Metric} from '../components/Primitives';
-const icons=[Database,Layers3,BrainCircuit,Map,Radio];
-export default function Architecture(){
- const state=useApi('/architecture');const ops=useApi('/operations');const [path,setPath]=useState('live');const [selected,setSelected]=useState(null);
- return <><PageTitle title="Architecture & Operations" description="Trace the product from atmospheric inputs to district-level decisions."><div className="segmented"><button data-testid="architecture-training-path" className={path==='training'?'selected':''} onClick={()=>setPath('training')}>Training path</button><button data-testid="architecture-live-path" className={path==='live'?'selected':''} onClick={()=>setPath('live')}>Live path</button></div></PageTitle><div className="architecture-layout"><section className="pipeline-section"><SectionHead title={path==='training'?'Offline training · 2000–2019':'Daily inference pipeline'} sub="Proposed scientific architecture · implemented prototype components identified in each layer"/><Async state={state}>{data=><div className="pipeline" data-testid="architecture-pipeline">{data.layers.map((layer,i)=>{const Icon=icons[i];return <div key={layer.id}><button data-testid={`pipeline-${layer.id}`} className={`pipeline-layer ${layer.id==='core'?'ai-core':''}`} onClick={()=>setSelected(layer)}><span className="pipeline-num">0{i+1}</span><span className="pipeline-icon"><Icon size={23}/></span><div><h3>{layer.title}</h3><p>{layer.subtitle}</p><div className="pipeline-nodes">{layer.nodes.map(n=><span key={n}>{n}</span>)}</div></div><ArrowUpRight size={17}/></button>{i<data.layers.length-1&&<div className="pipeline-connector"><ArrowDown size={16}/></div>}</div>})}</div>}</Async></section><section className="operations-panel"><SectionHead title="Operations health" sub="Synthetic pipeline status"/><Async state={ops}>{data=><><div className="ops-status"><CheckCircle2 size={21}/><div><b data-testid="operations-status">{data.status}</b><span>Operational model not connected</span></div></div><div className="ops-properties"><div><span>Last synthetic run</span><b>{data.last_run.replace('T',' ').replace('Z',' UTC')}</b></div><div><span>Illustrative latency</span><b>{data.latency_seconds} seconds</b></div><div><span>Generator version</span><b>{data.model_version}</b></div></div><SectionHead title="Missing live inputs"/>{data.missing_inputs.map(n=><div className="missing-input" key={n}><AlertTriangle size={14}/>{n}<span>Not connected</span></div>)}<SectionHead title="Version / rollback history"/><div className="table-wrap"><table className="data-table version-table" data-testid="version-history"><thead><tr><th>VERSION</th><th>STATUS</th></tr></thead><tbody>{data.history.map(v=><tr key={v.version}><td><b>{v.version}</b><small>{v.date}</small></td><td title={v.note}>{v.status}</td></tr>)}</tbody></table></div><SectionHead title="Alert log"/><div className="ops-log" data-testid="operations-alert-log">{data.alerts.map((a,i)=><div key={i}><i className={a.level==='Warning'?'warning':''}/><div><span>{a.time} <small>{a.level}</small></span><p>{a.message}</p></div></div>)}</div></>}</Async></section></div><Notice>PyTorch, LightGBM, MLflow and PostGIS describe the proposed production design. This running prototype uses FastAPI, NumPy, SciPy, Shapely and synthetic data.</Notice><Drawer open={!!selected} onClose={()=>setSelected(null)} title={selected?.title||'Pipeline layer'} description={path==='training'?'Offline training path':'Daily inference path'} id="pipeline-detail">{selected&&<><p className="body-copy">{selected.details}</p><SectionHead title="Processing path"/><p className="body-copy">{selected[path]}</p><SectionHead title="Components"/><ul className="component-list">{selected.nodes.map(n=><li key={n}>{n}</li>)}</ul><SectionHead title="Technology choices"/><div className="tech-list">{selected.technologies.map(t=><span key={t}>{t}</span>)}</div></>}</Drawer></>;
+import { PageTitle } from '../components/Primitives';
+
+export default function Architecture() {
+  return (
+    <>
+      <PageTitle title="Architecture & Operations" description="System architecture diagram." />
+      <div className="architecture-layout" style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+        <img 
+          src="YOUR_IMAGE_LOCATION_HERE" 
+          alt="Architecture Diagram" 
+          style={{ maxWidth: '100%', borderRadius: '8px' }}
+        />
+      </div>
+    </>
+  );
 }
