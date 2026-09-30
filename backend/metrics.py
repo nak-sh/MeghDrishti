@@ -5,7 +5,7 @@ from scipy.ndimage import uniform_filter, gaussian_filter
 from sklearn.metrics import roc_auc_score, confusion_matrix, precision_recall_fscore_support
 from engine import fields, region_mask, MASK, REGIMES, probability, mixture, seed
 
-NAMES = ['Raw NWP', 'Climatological bias removal', 'Quantile mapping', 'Global LightGBM', 'Hard regime split LightGBM', 'Soft-gated LightGBM experts', 'U-Net without regimes', 'MonsoonLens-Net', 'MonsoonLens ensemble']
+NAMES = ['Raw NWP', 'Climatological bias removal', 'Quantile mapping', 'Global LightGBM', 'Hard regime split LightGBM', 'Soft-gated LightGBM experts', 'U-Net without regimes', 'MeghDrishti-Net', 'MeghDrishti ensemble']
 METRIC_TIPS = {'bias': 'Mean forecast minus observation, in mm/day; ideal 0.', 'mae': 'Mean absolute error in mm/day; lower is better.', 'rmse': 'Root mean squared error in mm/day; lower is better.', 'pod': 'Probability of detection: hits / observed events.', 'far': 'False alarm ratio: false alarms / forecast events; lower is better.', 'csi': 'Critical success index: hits / (hits + misses + false alarms).', 'ets': 'Equitable threat score: CSI adjusted for random hits.', 'hss': 'Heidke skill score relative to random categorical agreement.', 'fss': 'Fractions skill score at a 50 km neighbourhood; higher is better.', 'bss': 'Brier skill score relative to observed event climatology.'}
 
 def div(a, b):

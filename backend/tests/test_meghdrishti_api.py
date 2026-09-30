@@ -1,4 +1,4 @@
-"""Core API regression tests for MonsoonLens synthetic demo backend."""
+"""Core API regression tests for MeghDrishti synthetic demo backend."""
 
 import math
 import os
@@ -29,7 +29,7 @@ def test_api_root_ok(api, base_url):
     r = api.get(f"{base_url}/api/")
     assert r.status_code == 200
     data = r.json()
-    assert data["service"] == "MonsoonLens"
+    assert data["service"] == "MeghDrishti"
     assert data["synthetic"] is True
 
 

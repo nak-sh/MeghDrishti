@@ -1,8 +1,8 @@
-# MonsoonLens — Product Requirements and Handoff
+# MeghDrishti — Product Requirements and Handoff
 
 ## Original problem statement
 
-Build a professional, production-quality web application called **MonsoonLens**, a regime-aware AI post-processing system for monsoon rainfall forecasts, as a working prototype for Smart India Hackathon 2026, Problem Statement 26080, Ministry of Earth Sciences / NCMRWF. Senior meteorologists and government officials are the audience; it must look like an operational weather-agency console rather than a generic dashboard.
+Build a professional, production-quality web application called **MeghDrishti**, a regime-aware AI post-processing system for monsoon rainfall forecasts, as a working prototype for Smart India Hackathon 2026, Problem Statement 26080, Ministry of Earth Sciences / NCMRWF. Senior meteorologists and government officials are the audience; it must look like an operational weather-agency console rather than a generic dashboard.
 
 The ML model is not trained. All data must come from a reproducible backend synthetic demo engine. Persistently show **DEMO DATA** and the footer “Synthetic data for prototype demonstration. Metrics are illustrative, not measured results.” A Demo/Live switch uses the same REST product contract, never presenting synthetic metrics as measured results.
 

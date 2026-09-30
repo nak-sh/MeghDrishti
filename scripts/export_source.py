@@ -3,7 +3,7 @@ from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 
 ROOT = Path(__file__).resolve().parents[1]
-OUTPUT = ROOT / 'frontend/public/downloads/MonsoonLens-source.zip'
+OUTPUT = ROOT / 'frontend/public/downloads/MeghDrishti-source.zip'
 EXCLUDED = {'node_modules','build','dist','.git','.venv','venv','__pycache__',
             '.pytest_cache','.ruff_cache','.cache','coverage','downloads','test_reports'}
 
@@ -25,7 +25,7 @@ def main():
     files.extend(ROOT/n for n in ['README.md','EXPORT_GUIDE.md','.gitignore'] if (ROOT/n).is_file())
     with ZipFile(OUTPUT,'w',ZIP_DEFLATED,compresslevel=8) as archive:
         for p in sorted(set(files)):
-            archive.write(p,'MonsoonLens/'+str(p.relative_to(ROOT)))
+            archive.write(p,'MeghDrishti/'+str(p.relative_to(ROOT)))
     with ZipFile(OUTPUT) as archive:
         assert archive.testzip() is None
         names=archive.namelist()
@@ -33,7 +33,7 @@ def main():
         for required in ['backend/server.py','backend/data/india.geojson',
                          'frontend/public/data/india.geojson','frontend/public/data/land-context.geojson',
                          'backend/data/districts-display.geojson','scripts/prepare_official_india.py']:
-            assert 'MonsoonLens/'+required in names
+            assert 'MeghDrishti/'+required in names
         print(f'Verified source archive: {len(names)} files, {OUTPUT.stat().st_size/1024/1024:.2f} MiB')
 
 if __name__=='__main__':

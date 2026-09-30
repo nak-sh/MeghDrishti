@@ -14,7 +14,7 @@ from engine import fields, districts, clean_grid, mixture, region_mask, REGIONS,
 from metrics import metrics, probability_report, verification, classifier_quality
 from content import metadata, methodology, RULES, PIPELINE
 
-app=FastAPI(title='MonsoonLens prototype API', version='0.1.0', description='Synthetic rainfall demonstration. Not an operational forecasting service.')
+app=FastAPI(title='MeghDrishti prototype API', version='0.1.0', description='Synthetic rainfall demonstration. Not an operational forecasting service.')
 app.add_middleware(CORSMiddleware,allow_origins=os.environ['CORS_ORIGINS'].split(','),allow_credentials=False,allow_methods=['GET'],allow_headers=['*'])
 api=APIRouter(prefix='/api')
 def context(date:Date=Query(Date(2026,8,16)),lead:int=Query(1,ge=1,le=5),region:str='All India',mode:Literal['demo','live']='demo'):
@@ -27,7 +27,7 @@ def meta(c):
     return {'data_mode':'demo','synthetic':True,'initialization_date':c['day'],'lead':c['lead'],'region':c['region'],'disclaimer':'Synthetic data for prototype demonstration. Metrics are illustrative, not measured results.','boundary_source':BOUNDARY_PROVENANCE['source'],'boundary_representation':BOUNDARY_PROVENANCE['boundary_representation']}
 
 @api.get('/')
-def root():return {'service':'MonsoonLens','status':'ok','synthetic':True}
+def root():return {'service':'MeghDrishti','status':'ok','synthetic':True}
 @api.get('/metadata')
 def get_metadata():return metadata()
 @api.get('/overview')
@@ -95,9 +95,9 @@ def cap(district:str,c=Depends(context),cutoff:float=Query(.6,ge=.05,le=.99),yel
     root=ET.Element('{'+ns+'}alert')
     def add(parent,key,value): n=node(parent,key,value);n.text=str(value);return n
     valid=Date.fromisoformat(fields(c['day'],c['lead'])['valid_date'])
-    for k,v in [('identifier',f'monsoonlens-test-{district}-{c["day"]}-d{c["lead"]}'),('sender','prototype@monsoonlens.invalid'),('sent',c['day']+'T00:00:00+00:00'),('status','Test'),('msgType','Alert'),('scope','Public')]:add(root,k,v)
+    for k,v in [('identifier',f'meghdrishti-test-{district}-{c["day"]}-d{c["lead"]}'),('sender','prototype@meghdrishti.invalid'),('sent',c['day']+'T00:00:00+00:00'),('status','Test'),('msgType','Alert'),('scope','Public')]:add(root,k,v)
     info=node(root,'info','')
-    for k,v in [('language','en-IN'),('category','Met'),('event','Synthetic heavy rainfall demonstration'),('responseType','Monitor'),('urgency','Future'),('severity',{'Red':'Extreme','Orange':'Severe','Yellow':'Moderate','Green':'Minor'}[d['alert']]),('certainty','Possible'),('effective',valid.isoformat()+'T03:00:00+00:00'),('expires',(valid+timedelta(days=1)).isoformat()+'T03:00:00+00:00'),('senderName','MonsoonLens prototype — not an official warning agency'),('headline',f'TEST ONLY: {d["alert"]} rainfall product for {d["name"]}'),('description','Synthetic data for prototype demonstration. Not an operational alert.'),('instruction',d['action']+' Do not act on this test message.')]:add(info,k,v)
+    for k,v in [('language','en-IN'),('category','Met'),('event','Synthetic heavy rainfall demonstration'),('responseType','Monitor'),('urgency','Future'),('severity',{'Red':'Extreme','Orange':'Severe','Yellow':'Moderate','Green':'Minor'}[d['alert']]),('certainty','Possible'),('effective',valid.isoformat()+'T03:00:00+00:00'),('expires',(valid+timedelta(days=1)).isoformat()+'T03:00:00+00:00'),('senderName','MeghDrishti prototype — not an official warning agency'),('headline',f'TEST ONLY: {d["alert"]} rainfall product for {d["name"]}'),('description','Synthetic data for prototype demonstration. Not an operational alert.'),('instruction',d['action']+' Do not act on this test message.')]:add(info,k,v)
     area=node(info,'area','');add(area,'areaDesc',f'{d["name"]}, {d["state"]}');add(area,'circle',f'{d["lat"]},{d["lon"]} 10')
     ET.indent(root,space='  ')
     return Response(ET.tostring(root,encoding='utf-8',xml_declaration=True),media_type='application/xml')

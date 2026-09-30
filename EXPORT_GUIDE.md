@@ -1,4 +1,4 @@
-# MonsoonLens source-code archive
+# MeghDrishti source-code archive
 
 This archive contains the React frontend, FastAPI backend, bundled geographic data, dependency manifests and lockfiles, tests, scripts, and product documentation.
 

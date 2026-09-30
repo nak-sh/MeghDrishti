@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🌧️ MonsoonLens
+# 🌧️ MeghDrishti
 
 **A regime-aware monsoon forecast demonstration console**
 
@@ -37,7 +37,7 @@ Built for **SIH 2026 · PS 26080 · NCMRWF / Ministry of Earth Sciences**
 
 ## 🔭 Overview
 
-MonsoonLens is a demonstration console showing how a regime-aware post-processing pipeline for monsoon rainfall forecasts could look and behave. It covers regime classification, gridded and district-level forecasts, calibrated exceedance probabilities, verification, a Kerala 2018 case study, and provisional alert mapping with CAP export.
+MeghDrishti is a demonstration console showing how a regime-aware post-processing pipeline for monsoon rainfall forecasts could look and behave. It covers regime classification, gridded and district-level forecasts, calibrated exceedance probabilities, verification, a Kerala 2018 case study, and provisional alert mapping with CAP export.
 
 It runs entirely on reproducible, in-memory synthetic data, so it can be demonstrated without a database or external credentials.
 
@@ -65,8 +65,8 @@ It runs entirely on reproducible, in-memory synthetic data, so it can be demonst
 ### 1. Clone
 
 ```bash
-git clone https://github.com/nak-sh/MonsoonLens.git
-cd MonsoonLens
+git clone https://github.com/nak-sh/MeghDrishti.git
+cd MeghDrishti
 ```
 
 ### 2. Backend (terminal 1)
@@ -176,7 +176,7 @@ set REACT_APP_BACKEND_URL=http://localhost:8001
 # macOS / Linux
 export REACT_APP_BACKEND_URL=http://localhost:8001
 
-pytest tests/test_monsoonlens_api.py -q
+pytest tests/test_meghdrishti_api.py -q
 ```
 
 The suite contains 16 backend API tests. All ten routes and the major interactions were checked on desktop and mobile, and the production build compiled without warnings.
@@ -200,7 +200,7 @@ Review the upstream terms, including GADM's use and redistribution terms, before
 ## 📁 Project structure
 
 ```text
-MonsoonLens/
+MeghDrishti/
 ├── backend/
 │   ├── server.py          # FastAPI app and routes
 │   ├── engine.py          # Synthetic field generation, masks, districts
